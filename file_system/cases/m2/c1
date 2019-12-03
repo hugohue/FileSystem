@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ANS=`echo "$0" | sed "s/\(.*\)c/\1o/"`
+OUT=out/`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`
+FN=`basename $0`
+
+dd if=/dev/zero of=disks/${FN}.disk bs=64M count=1 &> /dev/null                
+mkfs.vfat -I -F 32 -f 1 -S 512 -s 1 -R 32 disks/${FN}.disk &> /dev/null        
+sudo mount disks/${FN}.disk mnt
+for i in {1..17}
+do
+    sudo cp utils/sfile mnt/TEST$i.TXT
+done
+sync -f
+sudo umount mnt
+
+./recover -d disks/${FN}.disk -l 1>$OUT
+diff -w $ANS $OUT
+exit $?

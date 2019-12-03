@@ -1,0 +1,6 @@
+Number of FATs = 1
+Number of bytes per sector = 512
+Number of sectors per cluster = 2
+Number of reserved sectors = 64
+First FAT starts at byte = 32768
+Data area starts at byte = 293888

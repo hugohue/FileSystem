@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ANS=`echo "$0" | sed "s/\(.*\)c/\1o/"`
+OUT=out/`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`
+SOUT=out/sample_`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`
+RCOUT=out/`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`_rc
+FN=`basename $0`
+SFN=sample_`basename $0`
+
+
+dd if=/dev/zero of=disks/${FN}.disk bs=64M count=1 &> /dev/null                
+mkfs.vfat -I -F 32 -f 1 -S 512 -s 1 -R 32 disks/${FN}.disk &> /dev/null        
+
+sudo mount disks/${FN}.disk mnt
+sudo cp utils/sfile mnt/A.TXT
+sync -f
+sudo rm mnt/A.TXT
+sudo umount mnt
+cp disks/${FN}.disk disks/${SFN}.disk
+
+./sample -d disks/${SFN}.disk -x TEST 1>$SOUT
+./recover -d disks/${FN}.disk -x TEST 1>$OUT
+ret=0
+diff -w $SOUT $OUT
+ret=$(($?|$ret))
+diff disks/${SFN}.disk disks/${FN}.disk
+ret=$(($?|$ret))
+exit $ret

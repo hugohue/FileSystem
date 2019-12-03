@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ANS=`echo "$0" | sed "s/\(.*\)c/\1o/"`
+RCANS=`echo "$0" | sed "s/\(.*\)c/\1o/"`_rc
+OUT=out/`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`
+RCOUT=out/`echo "$0" | sed "s/\(.*\)c/\1o/" | sed "s/\.\/cases\///" | sed "s/\//_/"`_rc
+FN=`basename $0`
+
+dd if=/dev/zero of=disks/${FN}.disk bs=64M count=1 &> /dev/null                
+mkfs.vfat -I -F 32 -f 1 -S 512 -s 1 -R 32 disks/${FN}.disk &> /dev/null        
+sudo mount disks/${FN}.disk mnt
+for i in {1..3}
+do
+    sudo cp utils/sfile mnt/TEST$i
+done
+sudo cp utils/sfile mnt/TEST
+sync -f
+sudo rm mnt/TEST
+sync -f
+sudo umount mnt
+
+./recover -d disks/${FN}.disk -r TEST -o $RCOUT 1>$OUT
+ret=0
+diff -w $ANS $OUT
+ret=$(($?|$ret))
+diff -w $RCANS $RCOUT
+ret=$(($?|$ret))
+exit $ret

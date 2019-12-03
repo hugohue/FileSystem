@@ -1,0 +1,1 @@
+This file contains '\0' inside the file to trap those kids who use strcpy() to copy file content.
